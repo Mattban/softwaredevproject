@@ -1,0 +1,4 @@
+#! /bin/bash
+javac ./Parser/*.java
+javac ./TestGenerator/*.java
+java TestGenerator.TestGenerator $1 $2

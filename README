@@ -1,0 +1,36 @@
+Christopher Chin 	cchin1@ccs.neu.edu
+Adam Heaney 		aheaney@ccs.neu.edu
+Matthew Tebaldi 	mteb@ccs.neu.edu
+
+
+Our teams program can be compiled and run on the linux boxes in the CCIS Lab by entering the following into the command line:
+
+1. Run the cs4500 script in the src folder using the command line as follows:
+./cs4500 <inputfile> <outputfile> [-h] [-help] [-all] [-maxDepth (depth)]
+
+<inputfile> is the filepath of the input text file to be processed.
+<outputfile> is the desired filepath of the outputted file ending in the filename.
+If there is already a file with the desired filename at the <outputfile> location, it will be overwritten.
+
+Optional Flags:
+-all
+Ouput all generated test cases even if an equality test could not be generated
+
+-maxDepth (depth)
+Explicitly set the maximum call depth for generated test cases. The maximum depth is 3 by default.
+
+-h or -help
+Shows help information
+
+
+Parser Generator used when creating Rapid Prototype:
+
+Java Compiler Compiler (JavaCC)
+http://javacc.java.net/
+
+CURRENT KNOWN ISSUES:
+The current iteration of the program tends to fill its allocated amount of memory when given very complex Algebraic Specs as input.
+We are currently working on a fix for this problem.
+
+
+

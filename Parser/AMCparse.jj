@@ -1,0 +1,497 @@
+
+PARSER_BEGIN(ADTParser)
+
+
+/** ID lister. */
+import java.util.*;
+
+public class ADTParser {
+	
+  /** Main entry point. */
+  public static void main(String args[]) throws ParseException {
+		ADTParser parser = new ADTParser(System.in);
+		ASpec aspec = parser.Input();
+		System.out.println(aspec);
+  }
+
+}
+
+interface IExpression
+{
+	String getName(); 
+}
+
+class ASpec
+{
+	private ArrayList<ADT> adts;
+	
+	public ASpec()
+	{
+		adts = new ArrayList<ADT>();
+	}
+	
+	public ASpec(ArrayList<ADT> a)
+	{
+		adts = a;
+	}
+	
+	public ArrayList<ADT> getADT()
+	{
+		return adts;
+	}
+	
+	public String toString()
+	{
+		StringBuffer sb = new StringBuffer();
+		for (ADT a : adts)
+		{
+			sb.append(a.name);
+		}
+		return sb.toString();
+	}
+}
+
+class ADT
+{
+	private ArrayList<Function> functions;
+	public String name;
+	
+	public ADT(String n, ArrayList<Function> funcs)
+	{
+		name = n;
+		functions = funcs;
+	}
+	
+	public ArrayList<Function> getFunctions()
+	{
+		return functions;
+	}
+}
+
+class Equation
+{
+	public FunctionCall input;
+	public IExpression output;
+	
+	public Equation(FunctionCall in, IExpression out)
+	{
+		this.input = in;
+		this.output = out;
+	}
+	
+	public FunctionCall getInput()
+	{
+		return input;
+	}
+	
+	public IExpression getOuput()
+	{
+		return output;
+	}
+}
+
+class FunctionCall implements IExpression
+{
+	public String funcName;
+	public ArrayList<IExpression> inputs;
+	
+	public FunctionCall(String fName, ArrayList<IExpression> in)
+	{
+		this.funcName = fName;
+		this.inputs = in;
+	}
+	
+	public String getName()
+	{
+		return funcName;
+	}
+}
+
+class RangeVariable implements IExpression
+{
+	public String name;
+	
+	public RangeVariable(String n)
+	{
+		this.name = n;
+	}
+	
+	public String getName()
+	{
+		return name;
+	}
+}
+
+class BooleanValue implements IExpression
+{
+	public boolean val;
+
+	public BooleanValue(boolean b)
+	{
+		this.val = b;
+	}
+	
+	public String getName()
+	{
+		if(val)
+		{
+			return "true";
+		}
+		else return "false";
+	}
+}
+
+class StringValue implements IExpression
+{
+	public String val;
+
+	public StringValue(String s)
+	{
+		this.val = s;
+	}
+	
+	public String getName()
+	{
+		return val;
+	}
+}
+
+class CharValue implements IExpression
+{
+	public char val;
+
+	public CharValue(char c)
+	{
+		this.val = c;
+	}
+
+	public String getName()
+	{
+		return val + "";
+	}
+}
+
+class IntValue implements IExpression
+{
+	public int val;
+
+	public IntValue(String i)
+	{
+		this.val = Integer.parseInt(i);
+	}
+	
+	public String getName()
+	{
+		return val + "";
+	}
+}
+
+class Function
+{
+	private String name;
+	private Invocation invocation;
+	private String type;
+	private ArrayList<Equation> equations;
+	
+	public Function(String name, Invocation inv, String type)
+	{
+		this.name = name;
+		this.type = type;
+		this.invocation = inv;
+		this.equations = new ArrayList<Equation>();
+	}
+	
+	public String getName()
+	{
+		return name;
+	}
+
+	public String getType()
+	{
+		return type;
+	}
+
+	public Invocation getInvocations()
+	{
+		return invocation;
+	}
+	
+	public ArrayList<Equation> getEquations()
+	{
+		return equations;
+	}
+	
+	public void addEquation(Equation e)
+	{
+		this.equations.add(e);
+	}
+}
+
+class Invocation
+{
+	private List<String> parameterTypes;
+	
+	public Invocation(ArrayList<String> types)
+	{
+		parameterTypes = types;
+	}
+	
+	public List<String> getParameterTypes()
+	{
+		return parameterTypes;
+	}
+}
+
+PARSER_END(ADTParser)
+
+SKIP :
+{
+  " "
+| "\t"
+| "\n"
+| "\r"
+}
+
+TOKEN :
+{
+  < type: "int" | "boolean" | "character" | "string" >
+| < trueval: "#t" >
+| < falseval: "#f" >
+| < uinteger: ["0"-"9"] (["0"-"9"])* >
+| < identifier:  ["a"-"z","A"-"Z","_"] ( ["a"-"z","A"-"Z","_","0"-"9"] )* >
+| < OPENPAR: "(" > 
+| < CLOSEPAR: ")" > 
+| < PRIMSTART: "("  ("not" | "+" | "-" | "*" | "=" | "<" | ">" | "/") >
+| < stringrep: "\"" ["a"-"z","A"-"Z","_"] ( ["a"-"z","A"-"Z","_","0"-"9"] )* "\"" >
+| < charrep: "'" ["a"-"z","A"-"Z","_"] ( ["a"-"z","A"-"Z","_","0"-"9"] )* "'" >
+}
+
+
+
+/** Top level production. */
+ASpec Input() :
+{
+	ArrayList<ADT> adts;
+	ArrayList<Equation> equations;
+}
+{
+  "Signatures:"
+  adts = ADTs()
+  "Equations:"
+  equations = Equations()
+  { 
+	for(ADT a: adts)
+	{
+		for( Function f : a.getFunctions())
+		{
+			for(Equation e : equations)
+			{
+				if(f.getName().equals(e.getInput().getName()))
+				{
+					f.addEquation(e);
+				}
+			}
+		}
+	}
+	
+	return new ASpec(adts); 
+  }
+  <EOF>
+}
+
+ArrayList<ADT> ADTs() :
+{
+	ArrayList<ADT> result = new ArrayList<ADT>();
+	ADT a;
+}
+{
+	(
+		a = ADT()
+		{ result.add(a); }
+	)*
+	{ return result; }
+}
+
+ADT ADT() :
+{
+	ArrayList<Function> funcs;
+	String name;
+}
+{
+	"ADT:"
+	name = TypeName()
+	funcs = OperationSpecs()
+	{ return new ADT(name, funcs); }
+}
+
+String TypeName() :
+{
+	Token s;
+}
+{
+	s = <identifier>
+	{ return s.image; }
+}
+
+ArrayList<Function> OperationSpecs() :
+{
+	ArrayList<Function> result = new ArrayList<Function>();
+	Function func;
+}
+{
+	(
+		func = OperationSpec()
+		{ result.add(func); }
+	)+
+	{ return result; }
+}
+
+Function OperationSpec() :
+{
+	String name;
+	Invocation inv;
+	String t;
+}
+{
+	name = Operation()
+	":"
+	(inv = ArgTypes() | { inv = new Invocation(new ArrayList<String>()); })
+	"->"
+	t = Type()
+	{ return new Function(name, inv, t); }
+}
+
+String Type() :
+{
+	String s;
+	Token t;
+}
+{
+	(t = <type> { s = t.image; } | s = TypeName())
+	{ return s; }
+}
+
+String Operation() :
+{
+	Token s;
+}
+{
+	s = <identifier>
+	{ return s.image; }
+}
+
+Invocation ArgTypes() :
+{
+	ArrayList<String> types = new ArrayList<String>();
+	String s;
+}
+{
+	s = Type()
+	{ types.add(s); }
+	(
+		"*"
+		s = Type()
+		{ types.add(s); }
+	)*
+	{ return new Invocation(types); }
+}
+
+ArrayList<Equation> Equations() :
+{
+	ArrayList<Equation> result = new ArrayList<Equation>();
+	Equation eq;
+}
+{
+	(
+		eq = Equation()
+		{ result.add(eq); }
+	)*
+	{ return result; }
+}
+
+Equation Equation() :
+{
+	IExpression in;
+	IExpression out;
+}
+{
+	in = Term()
+	"="
+	out = Rhs()
+	{ return new Equation((FunctionCall)in, out); }
+}
+
+IExpression Term() :
+{
+	String name;
+	Token t;
+	ArrayList<IExpression> args;
+}
+{
+	((t = <identifier> {return new RangeVariable(t.image);}) |
+		(
+			<OPENPAR>
+			name = Operation()
+			args = Args()
+			<CLOSEPAR>
+			{return new FunctionCall(name, args);} 
+		)
+	)
+}
+
+IExpression Rhs() :
+{
+	String name;
+	Token t;
+	ArrayList<IExpression> args;
+	String s;
+}
+{
+	(	(t = <trueval> {return new BooleanValue(true);}) |
+		(t = <falseval> {return new BooleanValue(false);}) |
+		(t = <uinteger> {return new IntValue(t.image);}) |
+		(t = <identifier> {return new RangeVariable(t.image);}) |
+		(t = <stringrep> {return new StringValue(t.image);}) |
+		(t = <charrep> {return new CharValue(t.image.charAt(1));}) |
+		(
+			t = <PRIMSTART>
+			{s = t.image.substring(1);}
+			args = RhsArgs()
+			<CLOSEPAR>
+			{return new FunctionCall(s, args);} 
+		) |
+		(
+			<OPENPAR>
+			name = Operation()
+			args = RhsArgs()
+			<CLOSEPAR>
+			{return new FunctionCall(name, args);} 
+		)
+	)
+}
+
+ArrayList<IExpression> Args() :
+{
+	ArrayList<IExpression> result = new ArrayList<IExpression>();
+	IExpression t;
+}
+{
+	(
+		t = Term()
+		{ result.add(t); }
+	)*
+	{ return result; }
+}
+
+ArrayList<IExpression> RhsArgs() :
+{
+	ArrayList<IExpression> result = new ArrayList<IExpression>();
+	IExpression r;
+}
+{
+	(
+		r = Rhs()
+		{ result.add(r); }
+	)*
+	{ return result; }
+}

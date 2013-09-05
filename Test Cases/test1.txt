@@ -1,0 +1,22 @@
+Signatures:
+
+ADT: StackInt
+
+    empty   :                  ->  StackInt
+    push    :  StackInt * int    ->  StackInt
+    isEmpty :  StackInt        ->  boolean
+    top     :  StackInt        ->  int
+    pop     :  StackInt * int    ->  StackInt
+
+Equations:
+
+(top (empty)) = (empty)
+(top s) = s
+(push s n) = (push s n)
+(isEmpty s) = s
+(empty) = (empty)
+(pop (push s n) x)  =  s
+(top (push s n))  =  n
+(pop (empty) x) = (empty)
+(top (empty)) = (empty)
+(pop p i) = i
